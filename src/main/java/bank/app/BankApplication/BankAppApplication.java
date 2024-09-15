@@ -1,91 +1,120 @@
 package bank.app.BankApplication;
 
-import java.util.Scanner;
+import javax.swing.*;
+import java.awt.*;
 
 public class BankAppApplication {
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        BankService bankService = new BankService();
-        boolean running = true;
-
-        while (running) {
-            System.out.println("Welcome to the Bank App!");
-            System.out.println("1. Register");
-            System.out.println("2. Login");
-            System.out.println("3. Exit");
-            System.out.print("Please select an option: ");
-            int choice = scanner.nextInt();
-            scanner.nextLine();  // consume the newline
-
-            switch (choice) {
-                case 1:
-                    // Register a new user
-                    System.out.print("Enter username: ");
-                    String username = scanner.nextLine();
-                    System.out.print("Enter password: ");
-                    String password = scanner.nextLine();
-
-                    if (bankService.register(username, password)) {
-                        System.out.println("Registration successful!");
-                    } else {
-                        System.out.println("Username already exists or an error occurred.");
-                    }
-                    break;
-
-                case 2:
-                    // Login for existing users
-                    System.out.print("Enter username: ");
-                    String loginUsername = scanner.nextLine();
-                    System.out.print("Enter password: ");
-                    String loginPassword = scanner.nextLine();
-
-                    User loggedInUser = bankService.login(loginUsername, loginPassword);
-                    if (loggedInUser != null) {
-                        System.out.println("Login successful! Welcome, " + loggedInUser.getUsername());
-                        loggedInMenu(scanner, bankService, loggedInUser);
-                    } else {
-                        System.out.println("Invalid credentials, please try again.");
-                    }
-                    break;
-
-                case 3:
-                    // Exit the application
-                    System.out.println("Exiting the application. Goodbye!");
-                    running = false;
-                    break;
-
-                default:
-                    System.out.println("Invalid choice. Please try again.");
-            }
-        }
-
-        scanner.close();
+        SwingUtilities.invokeLater(() -> new BankAppApplication().createAndShowGUI());
     }
 
-    private static void loggedInMenu(Scanner scanner, BankService bankService, User user) {
-        boolean loggedIn = true;
-        while (loggedIn) {
-            System.out.println("\n--- User Menu ---");
-            System.out.println("1. Check Balance");
-            System.out.println("2. Logout");
-            System.out.print("Please select an option: ");
-            int choice = scanner.nextInt();
+    private void createAndShowGUI() {
+        JFrame frame = new JFrame("Bank Application");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(400, 300);
 
-            switch (choice) {
-                case 1:
-                    // Check user balance
-                    System.out.println("Your current balance is: $" + bankService.getBalance(user));
-                    break;
+        showLoginScreen(frame);
 
-                case 2:
-                    // Logout
-                    System.out.println("Logging out...");
-                    loggedIn = false;
-                    break;
+        frame.setVisible(true);
+    }
 
-                default:
-                    System.out.println("Invalid choice. Please try again.");
+    private void showLoginScreen(JFrame frame) {
+        frame.getContentPane().removeAll();
+        frame.setLayout(new GridLayout(4, 2));
+
+        JLabel userLabel = new JLabel("Username:");
+        JTextField userField = new JTextField();
+        JLabel passLabel = new JLabel("Password:");
+        JPasswordField passField = new JPasswordField();
+        JButton loginButton = new JButton("Login");
+        JButton registerButton = new JButton("Register");
+
+        BankService bankService = new BankService();
+
+        loginButton.addActionListener(e -> {
+            String username = userField.getText();
+            String password = new String(passField.getPassword());
+            User user = bankService.login(username, password);
+
+            if (user != null) {
+                JOptionPane.showMessageDialog(frame, "Login successful! Welcome, " + user.getUsername());
+                showMainMenu(frame, bankService, user);
+            } else {
+                JOptionPane.showMessageDialog(frame, "Invalid username or password.");
             }
-        }
+        });
+
+        registerButton.addActionListener(e -> showRegisterScreen(frame));
+
+        frame.add(userLabel);
+        frame.add(userField);
+        frame.add(passLabel);
+        frame.add(passField);
+        frame.add(loginButton);
+        frame.add(registerButton);
+
+        frame.revalidate();
+        frame.repaint();
+    }
+
+    private void showRegisterScreen(JFrame frame) {
+        frame.getContentPane().removeAll();
+        frame.setLayout(new GridLayout(4, 2));
+
+        JLabel userLabel = new JLabel("Username:");
+        JTextField userField = new JTextField();
+        JLabel passLabel = new JLabel("Password:");
+        JPasswordField passField = new JPasswordField();
+        JButton registerButton = new JButton("Register");
+        JButton backButton = new JButton("Back to Login");
+
+        BankService bankService = new BankService();
+
+        registerButton.addActionListener(e -> {
+            String username = userField.getText();
+            String password = new String(passField.getPassword());
+
+            if (bankService.register(username, password)) {
+                JOptionPane.showMessageDialog(frame, "Registration successful!");
+                showLoginScreen(frame);
+            } else {
+                JOptionPane.showMessageDialog(frame, "Username already exists or registration failed.");
+            }
+        });
+
+        backButton.addActionListener(e -> showLoginScreen(frame));
+
+        frame.add(userLabel);
+        frame.add(userField);
+        frame.add(passLabel);
+        frame.add(passField);
+        frame.add(registerButton);
+        frame.add(backButton);
+
+        frame.revalidate();
+        frame.repaint();
+    }
+
+    private void showMainMenu(JFrame frame, BankService bankService, User user) {
+        frame.getContentPane().removeAll();
+        frame.setLayout(new GridLayout(3, 1));
+
+        JLabel welcomeLabel = new JLabel("Welcome, " + user.getUsername());
+        JButton checkBalanceButton = new JButton("Check Balance");
+        JButton logoutButton = new JButton("Logout");
+
+        checkBalanceButton.addActionListener(e -> {
+            double balance = bankService.getBalance(user);
+            JOptionPane.showMessageDialog(frame, "Your current balance is: $" + balance);
+        });
+
+        logoutButton.addActionListener(e -> showLoginScreen(frame));
+
+        frame.add(welcomeLabel);
+        frame.add(checkBalanceButton);
+        frame.add(logoutButton);
+
+        frame.revalidate();
+        frame.repaint();
     }
 }
