@@ -4,6 +4,9 @@ import javax.swing.SwingUtilities;
 
 public class BankAppApplication {
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(LoginScreen::new);  // Start with Login Screen
+        // Ensure that the Swing UI updates are made on the Event Dispatch Thread
+        SwingUtilities.invokeLater(() -> {
+            new LoginScreen().setVisible(true); // Create and show the LoginScreen
+        });
     }
 }
